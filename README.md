@@ -73,9 +73,11 @@ Start the development server:
 
 ```bash
 npm start
-```
 
 App will open at http://localhost:3000
+
+```<img width="1708" height="462" alt="architectural design" src="https://github.com/user-attachments/assets/3ba74bfd-5195-4fe5-a7be-f64fe28ba899" />
+
 
 
 
