@@ -1,0 +1,21 @@
+body { font-family: sans-serif; background: #f4f4f9; padding: 20px; }
+.app-container { max-width: 800px; margin: 0 auto; }
+header { text-align: center; margin-bottom: 20px; }
+.card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+h2 { margin-top: 0; color: #333; font-size: 1.2rem; }
+.controls { display: flex; gap: 10px; align-items: center; }
+.status { margin-top: 10px; color: green; font-weight: bold; }
+.chat-window { height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px; background: #fafafa; margin-bottom: 10px; }
+.placeholder { text-align: center; color: #888; margin-top: 120px; }
+.message { display: flex; margin-bottom: 10px; }
+.message.user { justify-content: flex-end; }
+.message.ai { justify-content: flex-start; }
+.bubble { max-width: 70%; padding: 10px 15px; border-radius: 15px; }
+.message.user .bubble { background: #007bff; color: white; border-bottom-right-radius: 2px; }
+.message.ai .bubble { background: #e9ecef; color: black; border-bottom-left-radius: 2px; }
+.input-area { display: flex; gap: 10px; }
+input[type="text"] { flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+.btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; color: white; }
+.btn.primary { background: #28a745; }
+.btn.secondary { background: #007bff; }
+.btn:disabled { background: #ccc; }
