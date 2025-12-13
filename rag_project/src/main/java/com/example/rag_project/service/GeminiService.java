@@ -52,48 +52,59 @@ public class GeminiService {
     }
 
     // 2. CHAT METHOD (Updated model name)
-     public String chatCompletion(String systemPrompt, String userPrompt) throws Exception {
-            // CHANGED: Using "gemini-2.0-flash" because it is in your allowed list
-            String modelName = "gemini-2.0-flash";
+// Updated chatCompletion with Retry Logic
+    public String chatCompletion(String systemPrompt, String userPrompt) throws Exception {
+        // Use the model we know works
+        String modelName = "gemini-2.0-flash";
 
-            URI uri = URI.create(
-                    "https://generativelanguage.googleapis.com/v1beta/models/" + modelName + ":generateContent?key=" + apiKey
-            );
+        URI uri = URI.create(
+                "https://generativelanguage.googleapis.com/v1beta/models/" + modelName + ":generateContent?key=" + apiKey
+        );
 
-            String finalPrompt = systemPrompt + "\n\n" + userPrompt;
+        String finalPrompt = systemPrompt + "\n\n" + userPrompt;
 
-            Map<String, Object> body = Map.of(
-                    "contents", List.of(
-                            Map.of("parts", List.of(Map.of("text", finalPrompt)))
-                    )
-            );
+        Map<String, Object> body = Map.of(
+                "contents", List.of(
+                        Map.of("parts", List.of(Map.of("text", finalPrompt)))
+                )
+        );
 
-            String req = mapper.writeValueAsString(body);
+        String req = mapper.writeValueAsString(body);
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(uri)
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(req))
-                    .build();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(uri)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(req))
+                .build();
 
+        // --- ROBUST RETRY LOGIC ---
+        int maxRetries = 3;
+        long waitTime = 10000; // Start with 10 seconds
+
+        for (int i = 0; i < maxRetries; i++) {
             HttpResponse<String> resp = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (resp.statusCode() != 200) {
-                System.err.println("Gemini Error: " + resp.body());
-                throw new RuntimeException("Chat error (" + resp.statusCode() + "): " + resp.body());
+            if (resp.statusCode() == 200) {
+                // Success
+                JsonNode root = mapper.readTree(resp.body());
+                JsonNode textNode = root.at("/candidates/0/content/parts/0/text");
+                if (textNode.isMissingNode()) return "No response text found.";
+                return textNode.asText();
+
+            } else if (resp.statusCode() == 429) {
+                // Rate Limit Hit - Wait longer each time
+                System.out.println("⚠️ 429 Rate Limit. Waiting " + (waitTime / 1000) + "s...");
+                Thread.sleep(waitTime);
+                waitTime = waitTime * 2; // Double the wait time (10s -> 20s -> 40s)
+
+            } else {
+                // Other Error (400, 500)
+                throw new RuntimeException("Gemini API Error (" + resp.statusCode() + "): " + resp.body());
             }
-
-            JsonNode root = mapper.readTree(resp.body());
-            JsonNode textNode = root.at("/candidates/0/content/parts/0/text");
-
-            if (textNode.isMissingNode()) {
-                return "No response text found.";
-            }
-
-            return textNode.asText();
         }
 
-
+        throw new RuntimeException("Failed after " + maxRetries + " retries. Google API is busy.");
+    }
     // 3. DEBUG METHOD: List available models
     public String listAvailableModels() {
         try {

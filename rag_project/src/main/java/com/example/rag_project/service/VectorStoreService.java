@@ -46,9 +46,9 @@ public class VectorStoreService {
         // Note: We use ?::vector to tell Postgres this string is a vector
         return jdbc.queryForList("""
                 SELECT document_id, chunk_index, chunk_text,
-                       embedding <-> ?::vector AS distance
+                       embedding <=> ?::vector AS distance
                 FROM doc_chunks
-                ORDER BY embedding <-> ?::vector
+                ORDER BY embedding <=> ?::vector
                 LIMIT ?
                 """,
                 embeddingStr, embeddingStr, limit
